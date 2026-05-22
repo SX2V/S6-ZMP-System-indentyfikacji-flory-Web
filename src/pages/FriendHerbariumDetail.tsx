@@ -1,24 +1,24 @@
 import React, { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { herbariaApi } from '../api/herbaria';
 import type { PlantResponse } from '../types/auth';
 import { useTranslation } from '../hooks/useTranslation';
 
-export const UserHerbarium = () => {
-    const { id } = useParams<{ id: string }>();
+export const FriendHerbariumDetail = () => {
+    const { friendId, herbariumId } = useParams<{ friendId: string; herbariumId: string }>();
     const [plants, setPlants] = useState<PlantResponse[]>([]);
     const [loading, setLoading] = useState(true);
     const navigate = useNavigate();
     const { t } = useTranslation();
 
     useEffect(() => {
-        if (!id) return;
+        if (!herbariumId) return;
         herbariaApi
-            .getPlants(id)
+            .getPlants(herbariumId)
             .then((res) => setPlants(res.data))
             .catch(() => {})
             .finally(() => setLoading(false));
-    }, [id]);
+    }, [herbariumId]);
 
     const photoUrl = (url: string): string | null => {
         if (!url) return null;
@@ -39,8 +39,20 @@ export const UserHerbarium = () => {
 
     return (
         <div style={{ maxWidth: 1000, margin: '0 auto', padding: '40px 24px' }}>
+            <div style={{ marginBottom: 24 }}>
+                <button
+                    className="btn-outline"
+                    onClick={() => navigate(`/friend/${friendId}/herbaria`)}
+                    style={{ fontSize: 13 }}
+                >
+                    {t('backToHerbarium')}
+                </button>
+            </div>
+
             <h2 style={{ color: 'var(--moss)' }}>{t('exhibits')}</h2>
+
             {loading && <p style={{ color: '#888', marginTop: 20 }}>{t('loading')}</p>}
+
             {!loading && plants.length === 0 && (
                 <div
                     className="card"
@@ -49,6 +61,7 @@ export const UserHerbarium = () => {
                     {t('noPlants')}
                 </div>
             )}
+
             <div
                 style={{
                     display: 'grid',
@@ -62,7 +75,9 @@ export const UserHerbarium = () => {
                         key={p.id}
                         className="card"
                         style={{ cursor: 'pointer', padding: 0 }}
-                        onClick={() => navigate(`/herbarium/${id}/plant/${p.id}`)}
+                        onClick={() =>
+                            navigate(`/friend/${friendId}/herbarium/${herbariumId}/plant/${p.id}`)
+                        }
                     >
                         <div
                             style={{
@@ -102,7 +117,7 @@ export const UserHerbarium = () => {
                                     {t('family')}: {p.family}
                                 </div>
                             )}
-                            <div style={{ marginTop: 10 }}>
+                            <div style={{ marginTop: 10, display: 'flex', gap: 6 }}>
                                 <span className="tag">
                                     {p.photos?.length ?? 0} {t('photos')}
                                 </span>

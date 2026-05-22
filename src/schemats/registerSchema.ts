@@ -1,17 +1,36 @@
 import { z } from 'zod';
+import { pl } from '../i18n/pl';
+import { en } from '../i18n/en';
 
-export const registerSchema = z.object({
-    username: z.string().min(3, "Username musi mieć co najmniej 3 znaki"),
-    email: z.string().email("Niepoprawny adres email"),
-    password: z.string()
-        .min(8, "Hasło musi mieć co najmniej 8 znaków")
-        .regex(/[A-Z]/, "Hasło musi zawierać wielką literę")
-        .regex(/[0-9]/, "Hasło musi zawierać cyfrę")
-        .regex(/[^a-zA-Z0-9]/, "Hasło musi zawierać znak specjalny"),
-    confirmPassword: z.string()
-}).refine((data) => data.password === data.confirmPassword, {
-    message: "Hasła nie są identyczne",
-    path: ["confirmPassword"],
-});
+type Lang = 'pl' | 'en';
 
-export type RegisterFormValues = z.infer<typeof registerSchema>;
+const msgs = { pl, en };
+
+export const createRegisterSchema = (lang: Lang) => {
+    const t = (key: keyof typeof pl) => msgs[lang][key] ?? msgs['pl'][key];
+
+    return z
+        .object({
+            username: z.string().min(3, t('usernameMinLength')),
+            email: z.string().email(t('emailInvalid')),
+            password: z
+                .string()
+                .min(8)
+                .regex(/[A-Z]/, t('reqUpper'))
+                .regex(/[a-z]/, t('reqLower'))
+                .regex(/[0-9]/, t('reqDigit'))
+                .regex(/[^a-zA-Z0-9]/, t('reqSpecial')),
+            confirmPassword: z.string(),
+        })
+        .refine((data) => data.password === data.confirmPassword, {
+            message: t('passwordMismatch'),
+            path: ['confirmPassword'],
+        });
+};
+
+export type RegisterFormValues = {
+    username: string;
+    email: string;
+    password: string;
+    confirmPassword: string;
+};

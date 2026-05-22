@@ -1,30 +1,35 @@
 import React, { useEffect, useState } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { friendsApi } from '../api/friends';
 import { herbariaApi } from '../api/herbaria';
-import { useNavigate } from 'react-router-dom';
-import type { HerbariumResponse } from '../types/auth';
+import type { HerbariumResponse, PlantResponse } from '../types/auth';
 import { useTranslation } from '../hooks/useTranslation';
 
-export const PublicHerbaria = () => {
+export const FriendHerbaria = () => {
+    const { friendId } = useParams<{ friendId: string }>();
     const [herbaria, setHerbaria] = useState<HerbariumResponse[]>([]);
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
     const navigate = useNavigate();
     const { t } = useTranslation();
 
     useEffect(() => {
-        herbariaApi
-            .getPublicHerbaria()
+        if (!friendId) return;
+        friendsApi
+            .getFriendHerbaria(friendId)
             .then((res) => setHerbaria(res.data))
-            .catch(() => setError(t('fetchError')))
+            .catch(() => {})
             .finally(() => setLoading(false));
-    }, []);
+    }, [friendId]);
 
     return (
         <div style={{ maxWidth: 1100, margin: '0 auto', padding: '40px 24px' }}>
-            <h1 style={{ fontSize: '2rem', color: 'var(--moss)' }}>{t('publicHerbaria')}</h1>
+            <h1 style={{ fontSize: '2rem', color: 'var(--moss)', marginBottom: 8 }}>
+                {t('friendHerbaria')}
+            </h1>
             <p style={{ color: '#7a9e75', marginBottom: 32 }}>{t('publicSubtitle')}</p>
+
             {loading && <p style={{ textAlign: 'center', color: '#888' }}>{t('loading')}</p>}
-            {error && <p style={{ color: '#c62828', textAlign: 'center' }}>{error}</p>}
+
             <div
                 style={{
                     display: 'grid',
@@ -75,7 +80,9 @@ export const PublicHerbaria = () => {
                                 </span>
                                 <button
                                     className="btn-outline"
-                                    onClick={() => navigate(`/herbarium/${h.id}`)}
+                                    onClick={() =>
+                                        navigate(`/friend/${friendId}/herbarium/${h.id}`)
+                                    }
                                 >
                                     {t('view')}
                                 </button>
@@ -84,7 +91,8 @@ export const PublicHerbaria = () => {
                     </div>
                 ))}
             </div>
-            {!loading && !error && herbaria.length === 0 && (
+
+            {!loading && herbaria.length === 0 && (
                 <div className="card" style={{ textAlign: 'center', color: '#888', padding: 60 }}>
                     {t('noHerbaria')}
                 </div>

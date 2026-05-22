@@ -1,30 +1,41 @@
 import React, { useEffect, useState } from 'react';
-import { herbariaApi } from '../api/herbaria';
 import { useNavigate } from 'react-router-dom';
+import { herbariaApi } from '../api/herbaria';
 import type { HerbariumResponse } from '../types/auth';
 import { useTranslation } from '../hooks/useTranslation';
 
-export const PublicHerbaria = () => {
+export const Dashboard = () => {
     const [herbaria, setHerbaria] = useState<HerbariumResponse[]>([]);
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
     const navigate = useNavigate();
     const { t } = useTranslation();
 
-    useEffect(() => {
+    const load = () => {
         herbariaApi
-            .getPublicHerbaria()
+            .getMyHerbaria()
             .then((res) => setHerbaria(res.data))
-            .catch(() => setError(t('fetchError')))
+            .catch(() => {})
             .finally(() => setLoading(false));
+    };
+
+    useEffect(() => {
+        load();
     }, []);
 
     return (
-        <div style={{ maxWidth: 1100, margin: '0 auto', padding: '40px 24px' }}>
-            <h1 style={{ fontSize: '2rem', color: 'var(--moss)' }}>{t('publicHerbaria')}</h1>
-            <p style={{ color: '#7a9e75', marginBottom: 32 }}>{t('publicSubtitle')}</p>
-            {loading && <p style={{ textAlign: 'center', color: '#888' }}>{t('loading')}</p>}
-            {error && <p style={{ color: '#c62828', textAlign: 'center' }}>{error}</p>}
+        <div style={{ maxWidth: 1000, margin: '0 auto', padding: '40px 24px' }}>
+            <div style={{ marginBottom: 24 }}>
+                <h1>{t('myVirtualHerbarium')}</h1>
+            </div>
+
+            {loading && <p style={{ color: '#888' }}>{t('loading')}</p>}
+
+            {!loading && herbaria.length === 0 && (
+                <div className="card" style={{ textAlign: 'center', color: '#888', padding: 60 }}>
+                    {t('noHerbariaYet')}
+                </div>
+            )}
+
             <div
                 style={{
                     display: 'grid',
@@ -51,7 +62,21 @@ export const PublicHerbaria = () => {
                             🌿
                         </div>
                         <div style={{ padding: 20 }}>
-                            <h3 style={{ marginBottom: 5 }}>{h.name}</h3>
+                            <div
+                                style={{
+                                    display: 'flex',
+                                    justifyContent: 'space-between',
+                                    alignItems: 'center',
+                                    marginBottom: 5,
+                                }}
+                            >
+                                <h3>{h.name}</h3>
+                                {h.public && (
+                                    <span className="tag" style={{ fontSize: 10 }}>
+                                        Public
+                                    </span>
+                                )}
+                            </div>
                             <p
                                 style={{
                                     fontSize: 13,
@@ -84,11 +109,6 @@ export const PublicHerbaria = () => {
                     </div>
                 ))}
             </div>
-            {!loading && !error && herbaria.length === 0 && (
-                <div className="card" style={{ textAlign: 'center', color: '#888', padding: 60 }}>
-                    {t('noHerbaria')}
-                </div>
-            )}
         </div>
     );
 };

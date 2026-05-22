@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-    baseURL: 'http://localhost:8081',
+    baseURL: import.meta.env.DEV ? '/api' : 'https://ezielnik-production.up.railway.app',
 });
 
 api.interceptors.request.use((config) => {
@@ -11,5 +11,40 @@ api.interceptors.request.use((config) => {
     }
     return config;
 });
+
+api.interceptors.response.use(
+    (response) => response,
+    async (error) => {
+        const original = error.config;
+        const isAuthEndpoint =
+            original.url?.includes('/users/login') || original.url?.includes('/users/register');
+        if (error.response?.status === 401 && !original._retry && !isAuthEndpoint) {
+            original._retry = true;
+            const refreshToken = localStorage.getItem('refreshToken');
+            if (refreshToken) {
+                try {
+                    const res = await axios.post(
+                        import.meta.env.DEV
+                            ? '/api/users/refresh'
+                            : 'https://ezielnik-production.up.railway.app/users/refresh',
+                        { refreshToken }
+                    );
+                    const { token, refreshToken: newRefresh } = res.data;
+                    localStorage.setItem('token', token);
+                    localStorage.setItem('refreshToken', newRefresh);
+                    original.headers.Authorization = `Bearer ${token}`;
+                    return api(original);
+                } catch {
+                    localStorage.clear();
+                    window.location.href = '/login';
+                }
+            } else {
+                localStorage.clear();
+                window.location.href = '/login';
+            }
+        }
+        return Promise.reject(error);
+    }
+);
 
 export default api;
