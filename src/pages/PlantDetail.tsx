@@ -64,7 +64,7 @@ const PlantCard = ({
                             <div
                                 style={{ position: 'absolute', bottom: 8, display: 'flex', gap: 6 }}
                             >
-                                {photos.map((_dot: PlantPhotoResponse, i: number) => (
+                                {photos.map((_dot, i) => (
                                     <div
                                         key={i}
                                         onClick={() => setPhotoIdx(i)}
@@ -139,7 +139,7 @@ export const PlantDetail = () => {
     const { friendId, herbariumId, plantId } = params;
     const isFriendView = !!friendId;
     const token = localStorage.getItem('token');
-    const canCompare = isFriendView || !!token; // porównanie dostępne też dla publicznych gdy zalogowany
+    const canCompare = isFriendView || !!token;
 
     const [friendPlant, setFriendPlant] = useState<PlantResponse | null>(null);
     const [myHerbaria, setMyHerbaria] = useState<HerbariumResponse[]>([]);
