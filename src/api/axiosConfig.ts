@@ -2,6 +2,10 @@ import axios from 'axios';
 
 const api = axios.create({
     baseURL: import.meta.env.DEV ? '/api' : 'https://ezielnik-production.up.railway.app',
+    headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+    },
 });
 
 api.interceptors.request.use((config) => {
@@ -16,17 +20,14 @@ api.interceptors.response.use(
     (response) => response,
     async (error) => {
         const original = error.config;
-        const isAuthEndpoint =
-            original.url?.includes('/users/login') || original.url?.includes('/users/register');
+        const isAuthEndpoint = original.url?.includes('/users/login') || original.url?.includes('/users/register');
         if (error.response?.status === 401 && !original._retry && !isAuthEndpoint) {
             original._retry = true;
             const refreshToken = localStorage.getItem('refreshToken');
             if (refreshToken) {
                 try {
                     const res = await axios.post(
-                        import.meta.env.DEV
-                            ? '/api/users/refresh'
-                            : 'https://ezielnik-production.up.railway.app/users/refresh',
+                        import.meta.env.DEV ? '/api/users/refresh' : 'https://ezielnik-production.up.railway.app/users/refresh',
                         { refreshToken }
                     );
                     const { token, refreshToken: newRefresh } = res.data;
