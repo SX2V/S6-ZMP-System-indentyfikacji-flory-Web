@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { herbariaApi } from '../api/herbaria';
 import type { PlantResponse, HerbariumResponse } from '../types/auth';
@@ -17,16 +17,8 @@ const PlantCard = ({
 }) => {
     const [photoIdx, setPhotoIdx] = useState(0);
     const photos = plant.photos ?? [];
-    const photoUrl = (url: string): string | null => {
-        if (!url) return null;
-        const lower = url.toLowerCase().trimStart();
-        if (
-            lower.startsWith('javascript:') ||
-            lower.startsWith('data:') ||
-            lower.startsWith('vbscript:')
-        )
-            return null;
-        if (url.startsWith('http')) return url;
+    const photoUrl = (url: string) => {
+        if (!url || url.startsWith('http')) return url;
         const filename = url.startsWith('/photos/') ? url.slice(8) : url;
         const base = import.meta.env.DEV ? '/api' : 'https://ezielnik-production.up.railway.app';
         return `${base}/photos/${filename}`;
@@ -64,7 +56,7 @@ const PlantCard = ({
                 {photos.length > 0 ? (
                     <>
                         <img
-                            src={photoUrl(photos[photoIdx].url)}
+                            src={photoUrl(photos[photoIdx].url) ?? undefined}
                             alt={plant.name}
                             style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                         />
@@ -72,7 +64,7 @@ const PlantCard = ({
                             <div
                                 style={{ position: 'absolute', bottom: 8, display: 'flex', gap: 6 }}
                             >
-                                {photos.map((_, i) => (
+                                {photos.map((_dot: PlantPhotoResponse, i: number) => (
                                     <div
                                         key={i}
                                         onClick={() => setPhotoIdx(i)}
@@ -147,7 +139,7 @@ export const PlantDetail = () => {
     const { friendId, herbariumId, plantId } = params;
     const isFriendView = !!friendId;
     const token = localStorage.getItem('token');
-    const canCompare = isFriendView || !!token; // porównanie dostępne też dla publicznych gdy zalogowany
+    const canCompare = isFriendView || !!token;
 
     const [friendPlant, setFriendPlant] = useState<PlantResponse | null>(null);
     const [myHerbaria, setMyHerbaria] = useState<HerbariumResponse[]>([]);
