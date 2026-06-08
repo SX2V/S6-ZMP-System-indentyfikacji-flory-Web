@@ -139,7 +139,7 @@ export const PlantDetail = () => {
     const { friendId, herbariumId, plantId } = params;
     const isFriendView = !!friendId;
     const token = localStorage.getItem('token');
-    const canCompare = isFriendView || !!token;
+    const canCompare = isFriendView || !!token; // porównanie dostępne też dla publicznych gdy zalogowany
 
     const [friendPlant, setFriendPlant] = useState<PlantResponse | null>(null);
     const [myHerbaria, setMyHerbaria] = useState<HerbariumResponse[]>([]);

@@ -16,7 +16,7 @@ vi.mock('axios', async (importOriginal) => {
 
     return {
         default: {
-            ...actual.default,
+            ...actual.defaults,
             create: vi.fn(() => mockInstance),
             post: vi.fn(),
         },
